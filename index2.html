@@ -1,0 +1,262 @@
+<canvas id="ctx"></canvas>
+<canvas id="ctx2" width="250" height="250"style="position:absolute;top:0px;left:0px"></canvas>
+<button id="but1"style="position:absolute;top:500px;left:0px">sd</button>
+<script src="three.min.js"></script>
+
+<script src="PointerLockControls.js"></script>
+<script src="LoaderSupport.js"></script>
+<script src="OBJLoader.js"></script>
+<script src="OBJLoader2.js"></script>
+<script src="MTLLoader.js"></script>
+<script src="GLTFLoader.js"></script>
+<!--<script src="FlyControls.js"></script>-->
+
+
+<script>
+
+var ctx2 = document.getElementById('ctx2').getContext('2d')
+var width2 = window.innerWidth 
+var height2 = window.innerHeight
+ctx.width = width2
+ctx.height = height2
+var color_green = new THREE.MeshBasicMaterial({color:0x7fe000,vertexColors:THREE.FaceColors})//материал
+var color_blue = new THREE.MeshBasicMaterial({color:0x0588e6})//материал
+//var color_purple = new THREE.MeshPhongMaterial({color:0x9305e6})//материал
+color_purple = new THREE.MeshBasicMaterial({color:0x9305e6,vertexColors:THREE.FaceColors})//материал
+
+var geometryball=new THREE.SphereGeometry(10,32,32)//геометрия
+for(var i = 0; i < geometryball.faces.length; i++){
+geometryball.faces[i].color.setRGB(Math.random(),Math.random(),Math.random())
+}
+var geometryblock=null//
+var ploskost=new THREE.PlaneGeometry(8550,8550,32,32)//геометрия
+for(var i = 0; i < ploskost.faces.length; i++){
+ploskost.faces[i].color.setRGB(Math.random(),Math.random(),Math.random())
+}
+var nusha = new THREE.Mesh(geometryball,color_purple)//меш
+var krosh = new THREE.Mesh(geometryball,color_blue)//меш
+var poll = new THREE.Mesh(ploskost,color_green)//меш
+
+var ambientl = new THREE.AmbientLight(0xffffff)//источник_света(отовсюду)
+  //  const light = new THREE.DirectionalLight(0xffffff, 0.5);//источник_света(из позиции)
+  //  light.position.set(0, 10, 111);
+  //  light.target.position.set(10, 0, 0);
+
+
+var rendrer = new THREE.WebGLRenderer({canvas:ctx})
+//rendrer.setClearColor(0x00ff00)
+var camera = new THREE.PerspectiveCamera(45,width2/height2,0.1,5000)
+
+//camera.rotation.set(0,0.2,0)
+var scena = new THREE.Scene()
+   // scena.add(light);
+   // scena.add(light.target);
+//scena.add(ambientl)
+//scena.add(nusha)
+scena.add(poll)
+var ambientl = new THREE.AmbientLight(0xffffff)
+scena.add(ambientl)
+
+    const objLoader = new THREE.OBJLoader2();
+    objLoader.loadMtl('https://proginvert.github.io/3d_resources/res/windmill.mtl', null, (materials) => {
+      materials.Material.side = THREE.DoubleSide;
+      objLoader.setMaterials(materials);
+      objLoader.load('https://proginvert.github.io/3d_resources/res/windmill0.obj', (event) => {
+	  //objLoader.load('http://192.168.0.3:145/client/img/mark.obj', (event) => {
+	  //http://192.168.0.3:145/
+	  //http://localhost:145/client/img/mark.obj
+        const root = event.detail.loaderRootNode;
+		root.scale.set(210.5, 210.5, 210.5);
+		root.position.y-=250
+        scena.add(root);
+      });
+    });
+	const objLoader2 = new THREE.OBJLoader2();
+	objLoader2.loadMtl('https://proginvert.github.io/3d_resources/res2/r2-d2.mtl', null, (materials) => {
+     
+      objLoader2.setMaterials(materials);
+      objLoader2.load('https://proginvert.github.io/3d_resources/res2/r2-d2.obj', (event) => {
+	  //objLoader.load('http://192.168.0.3:145/client/img/mark.obj', (event) => {
+	  //http://192.168.0.3:145/
+	  //http://localhost:145/client/img/mark.obj
+        const root2 = event.detail.loaderRootNode;
+		//root2.scale.set(1.5, 1.5, 1.5);
+		root2.position.x-=400
+        scena.add(root2);
+      });
+    });
+var locker2 = new THREE.Clock()
+var glftload = new THREE.GLTFLoader()
+glftload.load('https://proginvert.github.io/3d_resources/res4/scene.gltf',(gltfScene)=>{
+model = gltfScene.scene
+model.position.x=150
+mixer = new THREE.AnimationMixer(model)
+mixer.clipAction(gltfScene.animations[5]).play()
+gltfScene.scene.position.x-=1000
+gltfScene.scene.position.y-=250
+gltfScene.scene.scale.set(210.5, 210.5, 210.5);
+scena.add(gltfScene.scene);
+})
+
+//poll.rotation.y+=0.50
+poll.rotation.x-=90*Math.PI/180
+poll.position.y-=250
+var camera_x_pos = 0
+var camera_z_pos = 1000
+var firestate=0
+var bulletlist={}
+document.onkeydown = function(event){
+if(event.code ==='KeyA'){
+//camera_x_pos-=5
+//camera_x_pos += Math.cos((vecx2-180)/180*Math.PI)*15;
+//camera_z_pos += Math.sin((vecx2-180)/180*Math.PI)*15;  
+fpscontrol.moveRight(-15)
+}
+if(event.code ==='KeyD'){
+//camera_x_pos+=5
+//camera_x_pos += Math.cos((vecx2-0)/180*Math.PI)*15;
+//camera_z_pos += Math.sin((vecx2-0)/180*Math.PI)*15;
+fpscontrol.moveRight(15) 
+}
+if(event.code ==='KeyW'){
+//camera_z_pos-=5
+//camera_x_pos += Math.cos((vecx2-90)/180*Math.PI)*15;
+//camera_z_pos += Math.sin((vecx2-90)/180*Math.PI)*15; 
+fpscontrol.moveForward(15)
+//console.log('wwwwww')
+}
+if(event.code ==='KeyS'){
+//camera_z_pos+=5
+//camera_x_pos -= Math.cos((vecx2-90)/180*Math.PI)*15;
+//camera_z_pos -= Math.sin((vecx2-90)/180*Math.PI)*15; 
+fpscontrol.moveForward(-15)
+}
+if(event.code ==='KeyF'){
+var id = Math.random()
+var asd = new THREE.Mesh(geometryball,color_purple)
+
+//firestate=1
+		asd.rotation.x = camera.rotation.x
+		asd.rotation.y = camera.rotation.y
+		asd.rotation.z = camera.rotation.z
+				asd.position.x = camera.position.x
+		asd.position.y = camera.position.y
+		asd.position.z = camera.position.z
+		asd.lifetime=50
+		;
+		bulletlist[id]=asd
+		scena.add(bulletlist[id])
+}
+}
+var vectr = new THREE.Vector3();
+var pewpaff = function ( distance ) {
+
+		// move forward parallel to the xz-plane
+		// assumes camera.up is y-up
+
+		vectr.setFromMatrixColumn( camera.matrix, 0 );
+
+		vectr.crossVectors( camera.up, vectr );//убирает направление выше ниже
+
+		//camera.position.addScaledVector( vectr, distance );
+
+	};
+	pewpaff2 = function ( delta ) {//delta=15
+var forward = 1
+//forward=1||0
+		this.moveVector.x = ( - this.moveState.left + this.moveState.right );//=-1||0||1
+		this.moveVector.y = ( - this.moveState.down + this.moveState.up );
+		this.moveVector.z = ( - forward + this.moveState.back );
+		var moveMult = delta * 1.0;//movementSpeed=1.0
+		var rotMult = delta * 0.005
+
+		this.object.translateX( this.moveVector.x * moveMult );
+		this.object.translateY( this.moveVector.y * moveMult );
+		this.object.translateZ( this.moveVector.z * moveMult );
+
+		this.tmpQuaternion.set( this.rotationVector.x * rotMult, this.rotationVector.y * rotMult, this.rotationVector.z * rotMult, 1 ).normalize();
+		this.object.quaternion.multiply( this.tmpQuaternion );
+
+		// expose the rotation vector for convenience
+		this.object.rotation.setFromQuaternion( this.object.quaternion, this.object.rotation.order );
+
+
+	}
+var vecx = 0
+var vecy = 0
+var vecx2 = 0
+var vec = new THREE.Vector3( );
+var fpscontrol = new THREE.PointerLockControls(camera,rendrer.domElement)
+//var flycontrol = new THREE.FlyControls(camera,rendrer.domElement)
+//flycontrol.movementSpeed=50
+//var locker = new THREE.Clock()//??
+
+but1.addEventListener('click',()=>{
+fpscontrol.lock()
+})
+/*
+var keybord = []
+
+addEventListener('keydown',(e)=>{
+keybord[e.key] = true
+})
+addEventListener('keyup',(e)=>{
+keybord[e.key] = false
+})
+function processKeyboard(){
+if(keybord['w']){
+fpscontrol.moveForward(0.2)
+}
+if(keybord['s']){
+fpscontrol.moveForward(-0.2)
+}
+}
+*/
+document.onmousemove = function(event){
+vecx = -event.clientX*Math.PI/180
+vecx2 = event.clientX
+vecy = -event.clientY+450
+}
+var getdistance = function( v1, v2 ){
+    var dx = v1.x - v2.x;
+    var dy = v1.y - v2.y;
+    var dz = v1.z - v2.z;
+
+    return Math.sqrt( dx * dx + dy * dy + dz * dz );
+}
+
+setInterval(function(){
+mixer.update(locker2.getDelta())
+//vec.applyQuaternion( camera.quaternion );
+//camera.getWorldDirection( vec )
+//console.log(vec.y*90,camera.rotation.y*60)
+//camera.position.set(camera_x_pos,0,camera_z_pos)
+//camera.rotation.set(vecy/400,vecx/100,0)
+ctx2.clearRect(0,0,500,500)
+ctx2.fillRect(0,0,500,500)
+//flycontrol.update(0.5)
+
+		//camera.translateZ( -25 );
+if(firestate===2){
+		nusha.translateZ( -35 )
+		}
+for(var i in bulletlist){
+
+bulletlist[i].translateZ( -35 )
+bulletlist[i].lifetime--
+if(bulletlist[i].lifetime<0||bulletlist[i].position.distanceTo(nusha.position)<50){
+
+scena.remove(bulletlist[i]);
+   bulletlist[i].geometry.dispose();
+    bulletlist[i].material.dispose();
+    bulletlist[i] = undefined;
+	delete bulletlist[i]
+}
+}
+//camera.rotation.y=vecx
+//camera.lookAt(-vecx*100,0,0)
+//camera.rotation.x=vecy/100
+//console.log(camera.position.distanceTo(nusha.position))
+rendrer.render(scena,camera)
+},1000/25)
+</script>
